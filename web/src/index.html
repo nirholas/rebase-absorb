@@ -1,0 +1,220 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>RebaseAbsorb: A pool whose reserves are real tokens it holds itself, so anything that happens to those tokens happens to the people who supplied them</title>
+<meta name="description" content="A pool whose reserves are real tokens it holds itself, so anything that happens to those tokens happens to the people who supplied them.">
+<link rel="canonical" href="https://rebase-absorb.pages.dev/">
+<meta name="robots" content="index, follow, max-image-preview:large">
+<meta name="theme-color" content="#07080b">
+
+<meta property="og:type" content="website">
+<meta property="og:site_name" content="RebaseAbsorb">
+<meta property="og:title" content="RebaseAbsorb">
+<meta property="og:description" content="A pool whose reserves are real tokens it holds itself, so anything that happens to those tokens happens to the people who supplied them.">
+<meta property="og:url" content="https://rebase-absorb.pages.dev/">
+<meta property="og:image" content="https://rebase-absorb.pages.dev/og.png">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:title" content="RebaseAbsorb">
+<meta name="twitter:description" content="A pool whose reserves are real tokens it holds itself, so anything that happens to those tokens happens to the people who supplied them.">
+<meta name="twitter:image" content="https://rebase-absorb.pages.dev/og.png">
+
+<link rel="stylesheet" href="/assets/site.css">
+<link rel="alternate" type="text/plain" title="For language models" href="/llms.txt">
+<script type="importmap">{"imports":{"three":"https://cdn.jsdelivr.net/npm/three@0.170.0/build/three.module.js"}}</script>
+<script type="application/ld+json">{"@context":"https://schema.org","@type":"SoftwareSourceCode","name":"RebaseAbsorb","description":"A pool whose reserves are real tokens it holds itself, so anything that happens to those tokens happens to the people who supplied them.","url":"https://rebase-absorb.pages.dev","codeRepository":"https://github.com/nirholas/rebase-absorb","programmingLanguage":"Solidity","runtimePlatform":"Ethereum Virtual Machine","license":"https://www.apache.org/licenses/LICENSE-2.0","keywords":"curve, rebasing, fee-on-transfer, custom-curve, no-admin","isPartOf":{"@type":"WebSite","name":"HookForge","url":"https://hookforge.pages.dev"}}</script>
+</head>
+<body>
+<a class="skip" href="#main">Skip to content</a>
+<header class="masthead">
+  <div class="shell masthead__inner">
+    <a class="brand" href="/">RebaseAbsorb</a>
+    <nav aria-label="Primary">
+      <a href="#how">How it works</a>
+      <a href="#using">Using it</a>
+      <a href="#deploy">Deploy</a>
+      <a href="https://github.com/nirholas/rebase-absorb" rel="noopener">GitHub</a>
+      <a href="https://hookforge.pages.dev" rel="noopener">Catalogue</a>
+    </nav>
+  </div>
+</header>
+
+<main id="main">
+  <div class="stage">
+    <div class="scene">
+      <canvas data-permissions="{&quot;afterRemoveLiquidityReturnsDelta&quot;:false,&quot;afterAddLiquidityReturnsDelta&quot;:false,&quot;afterSwapReturnsDelta&quot;:false,&quot;beforeSwapReturnsDelta&quot;:true,&quot;afterDonate&quot;:false,&quot;beforeDonate&quot;:false,&quot;afterSwap&quot;:false,&quot;beforeSwap&quot;:true,&quot;afterRemoveLiquidity&quot;:false,&quot;beforeRemoveLiquidity&quot;:true,&quot;afterAddLiquidity&quot;:false,&quot;beforeAddLiquidity&quot;:true,&quot;afterInitialize&quot;:false,&quot;beforeInitialize&quot;:true}" aria-hidden="true"></canvas>
+      <p class="scene__fallback">RebaseAbsorb implements 5 of the fourteen Uniswap v4 callbacks: beforeInitialize, beforeAddLiquidity, beforeRemoveLiquidity, beforeSwap, beforeSwapReturnsDelta.</p>
+    </div>
+    <p class="scene__hint">drag to orbit</p>
+
+  <section class="shell hero">
+    <p class="eyebrow">Uniswap v4 hook &middot; Curves</p>
+    <h1>RebaseAbsorb</h1>
+    <p class="lede">A pool whose reserves are real tokens it holds itself, so anything that happens to those tokens happens to the people who supplied them.</p>
+    <div class="cta-row">
+      <a class="btn btn--primary" href="https://github.com/nirholas/rebase-absorb" rel="noopener">Source on GitHub</a>
+      <a class="btn" href="#using">Use it in a pool</a>
+      <a class="btn" href="/hook.json">Manifest JSON</a>
+    </div>
+
+    <dl class="stats">
+      <div class="stat"><dt>Family</dt><dd>Curves</dd></div>
+      <div class="stat"><dt>Callbacks</dt><dd>5 of 14</dd></div>
+      <div class="stat"><dt>Fee</dt><dd>static</dd></div>
+      <div class="stat"><dt>Admin keys</dt><dd>none</dd></div>
+      <div class="stat"><dt>Licence</dt><dd>Apache-2.0</dd></div>
+    </dl>
+  </section>
+  </div>
+
+  <section class="shell">
+    <h2 id="how">How it works</h2>
+      <p>Uniswap v4 keeps every pool's tokens in one singleton and tracks ownership as ERC-6909 claims. That is what makes it cheap, and it has a consequence nobody has been able to work around: a claim does not rebase. If a rebasing token gains supply, the gain lands on the singleton's balance, where it belongs to no pool in particular and cannot be attributed to one, because the singleton holds the same token for every pool that trades it.</p>
+      <p>The same is true of a dividend paid to holders, and of an airdrop. The value arrives and strands. That is a property of where the tokens sit, not of v4.</p>
+      <p>A hook serving one pool is not a singleton. If the reserves live at the hook's own address, every one of those events is unambiguous: there is exactly one pool it could belong to, and its providers own it in proportion to their shares, with no accounting to do at all. The reserve is simply read as the balance, so a rebase up is already in the next quote and a rebase down is already priced in.</p>
+      <p>Nothing has to notice. Holding real tokens costs more gas per swap than holding claims, and that is the whole trade. It is the right trade for exactly the tokens the claims model cannot serve.</p>
+      <p>The same measurement makes fee-on-transfer tokens work, which is a second thing v4 cannot do. Because the hook quotes from what it actually received rather than from what the trader said they sent, a token that taxes its own transfers is priced correctly with no configuration, no oracle, and nothing to keep up to date when the token changes its own fee.</p>
+
+    <div class="callout callout--prior"><h3>Prior art</h3><p>Wrappers are the standard answer: wstETH wraps a rebasing token into a fixed-balance one, and every AMM that supports fee-on-transfer tokens (Uniswap v2's supporting-fee router onwards) does so by measuring balances in the router. On v4 the received wisdom is that rebasing tokens need a wrapper, because the singleton cannot attribute a supply change to a pool. Moving the reserves to a per-pool hook address, so that the attribution question does not arise and the balance itself is the reserve, is the contribution here.</p>
+      <p>It also covers what this catalogue listed separately as DividendPassthrough, since a dividend paid to holders is the same event as a rebase from the pool's point of view.</p></div>
+    <div class="callout callout--warn"><h3>Where it does not help</h3><p>Real transfers on every swap, which is more gas than the claims model and the reason v4 does not do this by default. Exact-output swaps are refused outright rather than approximated: a taxed transfer cannot deliver an exact amount to the recipient, so promising one would be a lie the contract could not keep. A taxed input needs a router that over-sends, as explained above, and is outside what a hook can fix.</p>
+      <p>One swap's input is also held as a claim until the next swap or a `sweep` converts it, and a rebase that lands in that window applies to everything except that amount. Reading the balance as the reserve also means a direct transfer to the hook is a donation to every share, which is harmless but is a way to move share value without a deposit. A token that can seize or freeze balances can do so here, exactly as it can anywhere else it is held.</p>
+      <p>And only the pool's own two tokens are absorbed; an airdrop of a third token sits at the hook address with no way to reach anybody.</p></div>
+
+    <h2 id="using">Using it</h2>
+    <p>
+      Uniswap v4 removed <code>hookData</code> from <code>initialize</code>, so per-pool parameters arrive out of band.
+      Fix them for a pool key whose pool does not exist yet, then initialize. Nobody can change them afterwards,
+      including you.
+    </p>
+    <pre><code>poolManager.initialize(key, startingSqrtPriceX96);</code></pre>
+    
+
+    <h3>Parameters</h3>
+    <p>This hook takes no per-pool configuration.</p>
+
+    <h3>From TypeScript</h3>
+    <pre><code>npm i @hookforge/sdk
+
+import {getHook, hookAddress, poolKeyFor} from "@hookforge/sdk";
+
+const hook = getHook("rebase-absorb");
+const key  = poolKeyFor({
+  hook: hookAddress("rebase-absorb", 8453),   // Base
+  currencyA: USDC, currencyB: WETH,
+  tickSpacing: 60,
+});</code></pre>
+
+    <h2>What it reverts with</h2>
+    <table>
+        <thead><tr><th>Error</th><th>Meaning</th></tr></thead>
+        <tbody><tr><td><code>AddLiquidityThroughHook()</code></td><td>Liquidity belongs to the hook, not to the pool, so the pool's own path is closed.</td></tr>
+          <tr><td><code>AlreadyBound()</code></td><td>This hook serves one pool, bound the first time one initializes with it.</td></tr>
+          <tr><td><code>AmountTooSmall()</code></td><td>The deposit was too small to mint a share, or the withdrawal too small to return anything.</td></tr>
+          <tr><td><code>CallbackNotPoolManager()</code></td><td>Only the <code>PoolManager</code> may drive the unlock callback.</td></tr>
+          <tr><td><code>ERC20InsufficientAllowance(address,uint256,uint256)</code></td><td>Indicates a failure with the <code>spender</code>’s <code>allowance</code>. Used in transfers.</td></tr>
+          <tr><td><code>ERC20InsufficientBalance(address,uint256,uint256)</code></td><td>Indicates an error related to the current <code>balance</code> of a <code>sender</code>. Used in transfers.</td></tr>
+          <tr><td><code>ERC20InvalidApprover(address)</code></td><td>Indicates a failure with the <code>approver</code> of a token to be approved. Used in approvals.</td></tr>
+          <tr><td><code>ERC20InvalidReceiver(address)</code></td><td>Indicates a failure with the token <code>receiver</code>. Used in transfers.</td></tr>
+          <tr><td><code>ERC20InvalidSender(address)</code></td><td>Indicates a failure with the token <code>sender</code>. Used in transfers.</td></tr>
+          <tr><td><code>ERC20InvalidSpender(address)</code></td><td>Indicates a failure with the <code>spender</code> to be approved. Used in approvals.</td></tr>
+          <tr><td><code>ExactOutputUnsupported()</code></td><td>An exact-output swap cannot promise an exact receipt when the token taxes its own transfers.</td></tr>
+          <tr><td><code>InsufficientInitialLiquidity()</code></td><td>The first deposit must exceed the permanently locked minimum.</td></tr>
+          <tr><td><code>InvalidFee()</code></td><td>A fee at or above the whole trade is not a fee.</td></tr>
+          <tr><td><code>NoReserves()</code></td><td>The pool has no reserves to quote against yet.</td></tr>
+          <tr><td><code>SafeCastOverflowedIntDowncast(uint8,int256)</code></td><td>Value doesn't fit in an int of <code>bits</code> size.</td></tr>
+          <tr><td><code>SafeCastOverflowedUintToInt(uint256)</code></td><td>A uint value doesn't fit in an int of <code>bits</code> size.</td></tr>
+          <tr><td><code>SafeERC20FailedOperation(address)</code></td><td>An operation with an ERC-20 token failed.</td></tr></tbody>
+      </table>
+
+    <h2>The callbacks it claims</h2>
+    <p>
+      Uniswap v4 reads a hook's permissions from the low fourteen bits of its own address, which is why deploying one
+      means mining a CREATE2 salt. This hook claims 5, so every deployment of it has an address ending
+      in <code>0x2a88</code>.
+    </p>
+    <ul class="flags"><li class="flag flag--on">beforeInitialize</li><li class="flag">afterInitialize</li><li class="flag flag--on">beforeAddLiquidity</li><li class="flag">afterAddLiquidity</li><li class="flag flag--on">beforeRemoveLiquidity</li><li class="flag">afterRemoveLiquidity</li><li class="flag flag--on">beforeSwap</li><li class="flag">afterSwap</li><li class="flag">beforeDonate</li><li class="flag">afterDonate</li><li class="flag flag--on">beforeSwapReturnsDelta</li><li class="flag">afterSwapReturnsDelta</li><li class="flag">afterAddLiquidityReturnsDelta</li><li class="flag">afterRemoveLiquidityReturnsDelta</li></ul>
+
+    <h2>It says what it is, on-chain</h2>
+    <p>
+      Nothing about a hook's address tells an indexer, a wallet, a router or an agent what the pool does, which is why
+      hook discovery today is a curated list. This hook answers for itself, in one <code>eth_call</code>, with no
+      registry in the loop.
+    </p>
+    <pre><code>cast call $HOOK "hookName()(string)"    # RebaseAbsorb
+cast call $HOOK "specURI()(string)"     # https://rebase-absorb.pages.dev/hook.json
+cast call $HOOK "hookTags()(string[])"  # curve, rebasing, fee-on-transfer, custom-curve, no-admin</code></pre>
+
+    <h2 id="deploy">Build, test and deploy</h2>
+    <pre><code>git clone --recurse-submodules https://github.com/nirholas/rebase-absorb
+cd rebase-absorb
+forge build &amp;&amp; forge test
+
+# Dry run: mines the salt, prints the address, sends nothing.
+forge script script/Deploy.s.sol --rpc-url $RPC_URL
+
+# For real.
+forge script script/Deploy.s.sol --rpc-url $RPC_URL --broadcast --verify</code></pre>
+
+    <div class="callout callout--warn">
+      <h3>Status</h3>
+      <p>
+        <strong>Unaudited.</strong> Built to an audited shape, on OpenZeppelin's audited hook bases, and tested against
+        a real <code>PoolManager</code>. No third party has reviewed it. Read "where it does not help" above before
+        putting money behind it. Not affiliated with Uniswap Labs.
+      </p>
+    </div>
+  </section>
+
+  <section class="shell">
+    <h2 id="try">Try it</h2>
+    <p>
+      This is the hook running, not a picture of it. Connect a wallet on a chain it is deployed to, or bring the whole
+      stack up locally in one command and use it with no funds and no wallet risk at all.
+    </p>
+    <div class="demo" data-demo="rebase-absorb">
+      <div class="panel panel--empty">
+        <p>Loading the demo… if this does not change, JavaScript is blocked and the demo cannot run.</p>
+      </div>
+    </div>
+    <details class="raw">
+      <summary>Run the whole thing locally</summary>
+      <pre><code>git clone --recurse-submodules https://github.com/nirholas/rebase-absorb
+cd rebase-absorb
+
+anvil &amp;
+forge script script/DeployLocal.s.sol --rpc-url http://127.0.0.1:8545 --broadcast \
+  --private-key 0xac0974bec39a17e36ba4a6b4d238ff944bacb478cbed5efcae784d7bf4f2ff80
+
+node web/build.mjs &amp;&amp; npx serve web/dist</code></pre>
+      <p class="muted">
+        The deploy script writes <code>web/local.json</code> itself and the build merges it, so the page points at the
+        chain you just created without you editing anything. Point a wallet at
+        <code>http://127.0.0.1:8545</code> and every button on this page works.
+      </p>
+      <p class="muted">
+        Anvil's first account is pre-funded and its key is public by design. Never use it anywhere real.
+      </p>
+    </details>
+  </section>
+  <script type="application/json" id="deployments">{"chains":{},"errors":[{"type":"error","name":"AddLiquidityThroughHook","inputs":[]},{"type":"error","name":"AlreadyBound","inputs":[]},{"type":"error","name":"AmountTooSmall","inputs":[]},{"type":"error","name":"CallbackNotPoolManager","inputs":[]},{"type":"error","name":"ERC20InsufficientAllowance","inputs":[{"name":"spender","type":"address","internalType":"address"},{"name":"allowance","type":"uint256","internalType":"uint256"},{"name":"needed","type":"uint256","internalType":"uint256"}]},{"type":"error","name":"ERC20InsufficientBalance","inputs":[{"name":"sender","type":"address","internalType":"address"},{"name":"balance","type":"uint256","internalType":"uint256"},{"name":"needed","type":"uint256","internalType":"uint256"}]},{"type":"error","name":"ERC20InvalidApprover","inputs":[{"name":"approver","type":"address","internalType":"address"}]},{"type":"error","name":"ERC20InvalidReceiver","inputs":[{"name":"receiver","type":"address","internalType":"address"}]},{"type":"error","name":"ERC20InvalidSender","inputs":[{"name":"sender","type":"address","internalType":"address"}]},{"type":"error","name":"ERC20InvalidSpender","inputs":[{"name":"spender","type":"address","internalType":"address"}]},{"type":"error","name":"ExactOutputUnsupported","inputs":[]},{"type":"error","name":"HookNotImplemented","inputs":[]},{"type":"error","name":"InsufficientInitialLiquidity","inputs":[]},{"type":"error","name":"InvalidFee","inputs":[]},{"type":"error","name":"InvalidPool","inputs":[]},{"type":"error","name":"NoReserves","inputs":[]},{"type":"error","name":"NotPoolManager","inputs":[]},{"type":"error","name":"SafeCastOverflowedIntDowncast","inputs":[{"name":"bits","type":"uint8","internalType":"uint8"},{"name":"value","type":"int256","internalType":"int256"}]},{"type":"error","name":"SafeCastOverflowedUintToInt","inputs":[{"name":"value","type":"uint256","internalType":"uint256"}]},{"type":"error","name":"SafeERC20FailedOperation","inputs":[{"name":"token","type":"address","internalType":"address"}]}],"demo":{"panel":"vault","title":"A pool that feels what happens to its own tokens","lede":"Uniswap v4 keeps every pool's tokens in one singleton, and a rebase landing there belongs to no pool in particular. This hook holds its reserves at its own address instead, so a rebase, a dividend or an airdrop of the pool's own tokens is unambiguous and already belongs to the share holders. The reserve is read as the balance, so nothing has to notice.","defaultAmount":"100","pushLabel":"Swap against it","pushHint":"Trade the pool and watch the reserves move as real token balances.","pushAmount":"5000000000000000000","pushResult":"Swapped. The reserves above are the hook's own balances, not a stored number.","stats":[{"name":"swapFeeBps","label":"Swap fee","format":"bps"}],"localDeploy":{"flags":"Hooks.BEFORE_INITIALIZE_FLAG | Hooks.BEFORE_ADD_LIQUIDITY_FLAG | Hooks.BEFORE_REMOVE_LIQUIDITY_FLAG | Hooks.BEFORE_SWAP_FLAG | Hooks.BEFORE_SWAP_RETURNS_DELTA_FLAG","constructorArgs":"IPoolManager(address(manager)), 30, \"Rebase Absorb LP\", \"RA-LP\"","dynamicFee":false,"seed":"IERC20(Currency.unwrap(currency0)).approve(address(hook), type(uint256).max);\nIERC20(Currency.unwrap(currency1)).approve(address(hook), type(uint256).max);\nhook.deposit(200e18, 200e18);"}}}</script>
+  <script type="module" src="/assets/demo.js"></script>
+</main>
+
+<footer class="foot">
+  <div class="shell">
+    <p>
+      <a href="https://github.com/nirholas/rebase-absorb" rel="noopener">Source</a> &middot;
+      <a href="/hook.json">Manifest</a> &middot;
+      <a href="/llms.txt">llms.txt</a> &middot;
+      <a href="https://hookforge.pages.dev" rel="noopener">The rest of the catalogue</a>
+    </p>
+    <p>Apache-2.0 licensed. Not affiliated with Uniswap Labs.</p>
+  </div>
+</footer>
+<script type="module" src="/assets/scene.js"></script>
+</body>
+</html>

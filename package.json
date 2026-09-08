@@ -1,0 +1,30 @@
+{
+  "name": "rebase-absorb",
+  "version": "1.0.0",
+  "private": true,
+  "description": "A pool whose reserves are real tokens it holds itself, so anything that happens to those tokens happens to the people who supplied them.",
+  "license": "Apache-2.0",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/nirholas/rebase-absorb.git"
+  },
+  "homepage": "https://rebase-absorb.pages.dev",
+  "keywords": [
+    "uniswap",
+    "uniswap-v4",
+    "uniswap-hooks",
+    "defi",
+    "amm",
+    "solidity",
+    "curve",
+    "rebasing",
+    "fee-on-transfer",
+    "custom-curve",
+    "no-admin"
+  ],
+  "scripts": {
+    "build": "node web/build.mjs",
+    "contracts:build": "forge build",
+    "contracts:test": "forge test"
+  }
+}
