@@ -1,0 +1,10 @@
+cff-version: 1.2.0
+message: If you use this software, please cite it as below.
+title: "rebase-absorb"
+abstract: "A pool whose reserves are real tokens it holds itself, so anything that happens to those tokens happens to the people who supplied them."
+license: Apache-2.0
+repository-code: "https://github.com/nirholas/rebase-absorb"
+url: "https://three.ws"
+authors:
+  - name: three.ws
+    website: "https://three.ws"
